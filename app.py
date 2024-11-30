@@ -1,32 +1,34 @@
-import os
+import json
 import streamlit as st
 import praw
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from dotenv import load_dotenv
-import json
 
-# Load environment variables from .env file
-load_dotenv()
+# Access Reddit and YouTube secrets from Streamlit Secrets
+REDDIT_CLIENT_ID = st.secrets["reddit"]["client_id"]
+REDDIT_CLIENT_SECRET = st.secrets["reddit"]["client_secret"]
+REDDIT_USER_AGENT = st.secrets["reddit"]["user_agent"]
+REDDIT_USERNAME = st.secrets["reddit"]["username"]
+REDDIT_PASSWORD = st.secrets["reddit"]["password"]
 
-# Get credentials for Reddit and YouTube
-REDDIT_CLIENT_ID = os.getenv("REDDIT_CLIENT_ID")
-REDDIT_CLIENT_SECRET = os.getenv("REDDIT_CLIENT_SECRET")
-REDDIT_USER_AGENT = os.getenv("REDDIT_USER_AGENT")
-REDDIT_USERNAME = os.getenv("REDDIT_USERNAME")
-REDDIT_PASSWORD = os.getenv("REDDIT_PASSWORD")
+# Handle YouTube client secret JSON as a string
+YOUTUBE_CLIENT_SECRET = st.secrets["youtube"]["client_secret"]
 
-YOUTUBE_CLIENT_SECRET_PATH = os.getenv("YOUTUBE_CLIENT_SECRET_PATH", "client_secret.json")
-
-
-# Authenticate YouTube API using client_secret.json
+# Authenticate YouTube API using client_secret stored in Streamlit secrets
 def authenticate_youtube():
     st.info("Authenticating YouTube API...")
     scopes = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
-    # Run OAuth flow
-    flow = InstalledAppFlow.from_client_secrets_file(YOUTUBE_CLIENT_SECRET_PATH, scopes)
+    # Convert the YouTube client secret string back to JSON
+    client_secret_data = json.loads(YOUTUBE_CLIENT_SECRET)
+
+    # Save the client secret data to a temporary JSON file
+    with open("client_secret_temp.json", "w") as json_file:
+        json.dump(client_secret_data, json_file)
+
+    # Run OAuth flow with the temporary client_secret.json
+    flow = InstalledAppFlow.from_client_secrets_file("client_secret_temp.json", scopes)
     credentials = flow.run_local_server(port=0)
 
     # Build YouTube API client

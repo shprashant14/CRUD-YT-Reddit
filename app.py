@@ -30,8 +30,8 @@ def authenticate_youtube():
     # Run OAuth flow with the temporary client_secret.json
     flow = InstalledAppFlow.from_client_secrets_file("client_secret_temp.json", scopes)
 
-    # Use run_console method to handle the authentication in non-browser environments
-    credentials = flow.run_console()  # This allows console-based OAuth flow
+    # Use run_local_server() for OAuth, this will allow it to work in Streamlit Cloud
+    credentials = flow.run_local_server(port=0, authorization_prompt_message='Please visit this URL: {url}')
 
     # Build YouTube API client
     youtube = build("youtube", "v3", credentials=credentials)
